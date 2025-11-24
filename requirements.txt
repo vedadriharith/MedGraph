@@ -1,0 +1,13 @@
+streamlit
+streamlit-agraph
+langchain
+langchain-community
+langchain-core
+langchain-groq
+langchain-huggingface
+langchain-experimental
+neo4j
+chromadb
+python-dotenv
+pandas
+datasets

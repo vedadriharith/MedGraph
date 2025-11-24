@@ -1,0 +1,19 @@
+# Security: Never upload keys
+.env
+
+# Database: Users should generate their own
+medical_chroma_db/
+*.chroma/
+
+# Python System Files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# OS System Files
+.DS_Store
+Thumbs.db
+
+# Local Results
+*.csv
