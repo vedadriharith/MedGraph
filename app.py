@@ -8,6 +8,7 @@ from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from streamlit_agraph import agraph, Node, Edge, Config
+from medgraph.retrieval.graph_store import fetch_neighbours, fetch_triples
 
 # Load environment variables
 load_dotenv()
@@ -20,6 +21,7 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 NEO4J_URI = os.getenv("NEO4J_URI")
 NEO4J_USERNAME = os.getenv("NEO4J_USERNAME")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
+NEO4J_DATABASE = os.getenv("NEO4J_DATABASE")
 
 if not GROQ_API_KEY or not NEO4J_PASSWORD:
     st.error("🚨 API Keys not found! Please create a .env file with your credentials.")
@@ -31,9 +33,9 @@ def setup_databases():
     print("Loading Databases...")
     embedding_function = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
     vector_db = Chroma(persist_directory="./medical_chroma_db", embedding_function=embedding_function)
-    graph = Neo4jGraph(url=NEO4J_URI, username=NEO4J_USERNAME, password=NEO4J_PASSWORD)
-    # Using Llama 3.1 Instant for speed
-    llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)
+    graph = Neo4jGraph(url=NEO4J_URI, username=NEO4J_USERNAME, password=NEO4J_PASSWORD, database=NEO4J_DATABASE)
+    # Fast model for interactive UI responses
+    llm = ChatGroq(model="openai/gpt-oss-20b", temperature=0)
     return vector_db, graph, llm
 
 try:
@@ -43,61 +45,31 @@ try:
 except Exception as e:
     db_status = f"❌ Error: {e}"
 
-# --- LOGIC ---
-def sanitize(text):
-    text = text.replace("'s", "") 
-    text = text.replace("'", "\\'") 
-    return text.strip()
-
 def get_graph_data(entities):
     nodes = []
     edges = []
     node_ids = set()
     
     for entity in entities:
-        clean_entity = sanitize(entity)
-        query = f"""
-        MATCH (n)-[r]-(m)
-        WHERE toLower(n.id) CONTAINS toLower('{clean_entity}') OR toLower(m.id) CONTAINS toLower('{clean_entity}')
-        RETURN n.id AS source, type(r) AS rel, m.id AS target
-        LIMIT 20
-        """
-        try:
-            results = graph.query(query)
-            for res in results:
-                source = res['source']
-                target = res['target']
-                rel = res['rel']
-                
-                if source not in node_ids:
-                    nodes.append(Node(id=source, label=source, size=25, color="#FF4B4B"))
-                    node_ids.add(source)
-                if target not in node_ids:
-                    nodes.append(Node(id=target, label=target, size=15, color="#4BFF4B"))
-                    node_ids.add(target)
-                edges.append(Edge(source=source, label=rel, target=target, color="#A0A0A0"))
-        except Exception as e:
-            print(f"Viz Error: {e}")
-            
+        for res in fetch_neighbours(graph, entity, limit=20):
+            source = res['source']
+            target = res['target']
+            rel = res['rel']
+
+            if source not in node_ids:
+                nodes.append(Node(id=source, label=source, size=25, color="#FF4B4B"))
+                node_ids.add(source)
+
+            if target not in node_ids:
+                nodes.append(Node(id=target, label=target, size=25, color="#4DFF4B"))
+                node_ids.add(target)
+            edges.append(Edge(source=source, label=rel, target=target, color="#A0A0A0"))
     return nodes, edges
 
 def get_graph_context_text(entities):
-    context_data = []
-    for entity in entities:
-        clean_entity = sanitize(entity)
-        query = f"""
-        MATCH (n)-[r]-(m)
-        WHERE toLower(n.id) CONTAINS toLower('{clean_entity}') OR toLower(m.id) CONTAINS toLower('{clean_entity}')
-        RETURN n.id AS source, type(r) AS rel, m.id AS target
-        LIMIT 10
-        """
-        try:
-            result = graph.query(query)
-            for record in result:
-                context_data.append(f"{record['source']} {record['rel']} {record['target']}")
-        except Exception:
-            continue
-    return "\n".join(context_data) if context_data else "No direct graph connections found."
+    """Return graph relationships as newline-separated text for the LLM prompt."""
+    triples = fetch_triples(graph, entities)
+    return "\n".join(triples) if triples else "No direct graph found."
 
 def hybrid_search_logic(question):
     # 1. Extract
@@ -131,7 +103,7 @@ def hybrid_search_logic(question):
 
 # --- UI ---
 st.title("🧬 MedGraph: Hybrid Reasoning Engine")
-st.caption(f"System Status: {db_status} | Model: Llama 3.1 Instant")
+st.caption(f"System Status: {db_status} | Model: openai/gpt-oss-20b")
 
 col1, col2 = st.columns([55, 45])
 
