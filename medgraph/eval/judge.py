@@ -102,7 +102,7 @@ def judge(question, answer, ground_truth, retries=3):
     if cached is not None:
         return cached
 
-    logger.info("judge cache miss %s - calling %s", key[:8], JUDGE_MODEL)
+    logger.info("judge cache miss %s - calling %s", key[:8], llm_config.JUDGE_MODEL)
     llm = judge_llm()
     prompt = PROMPT.format(
         question=question, ground_truth=ground_truth, answer=answer

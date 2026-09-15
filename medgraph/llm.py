@@ -15,7 +15,7 @@ load_dotenv()
 
 ANSWERING_MODEL = "openai/gpt-oss-120b"
 FAST_MODEL = "openai/gpt-oss-20b"
-JUDGE_MODEL = "gemini-3.8-flash"
+JUDGE_MODEL = "gemini-3.5-flash-lite"
 
 def answering_llm():
     """Model that produces answers under evaluation."""
