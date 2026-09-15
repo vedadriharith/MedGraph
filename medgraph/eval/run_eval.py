@@ -14,8 +14,9 @@ import time
 from medgraph.arms import ARMS
 from medgraph.eval.dataset import ALL_QUESTIONS
 from medgraph.eval.judge import judge
+from medgraph.config import setup_logging
 
-logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+setup_logging()
 logger = logging.getLogger(__name__)
 
 RESULTS_DIR = "results"

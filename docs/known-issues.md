@@ -55,3 +55,10 @@ in which they were found. Each names where it will be handled.
 Entity matching too strict — sh06 question lo "Graft-Versus-Host Disease (GVHD)" ani undi, graph lo node id "GVHD". CONTAINS match kaledu, triple_count=0 vachindi. Graph lo data unna sare retrieval fail ayindi. → P1-3 (entity linking/aliases)
 
 Graph failure vs empty result distinguish cheyyalem — log lo Neo4j connection drops kanipinchayi (Aura idle connections cut chestundi), and fetch_neighbours() aa exception ni pattukoni [] istundi. CSV lo adi triple_count=0 ga kanipistundi — "data ledu" laaga. Rendintiki ee vyatyasam CSV lo ledu. → graph_error column add cheyyali, P1-4 lo.
+
+answering model output varies across runs at temperature 0; run-to-run variance unmeasured (P1-6).
+
+- `full_scale_builder.py`, `inspect_graph.py` and `repair_graph.py` build
+  their own Neo4j connections without the `database` parameter, so they
+  fail against an Aura instance whose database is not named `neo4j`.
+  -> replaced by resumable ingestion (P1-1)

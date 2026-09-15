@@ -1,14 +1,29 @@
-streamlit
-streamlit-agraph
-langchain
-langchain-community
-langchain-core
-langchain-groq
-langchain-huggingface
-langchain-experimental
-neo4j
-chromadb
-python-dotenv
-pandas
-datasets
-sentence-transformers
+# Pinned to the versions this project was verified with on 2026-09-15.
+# langchain-community is being sunset upstream; see docs/known-issues.md
+# for the planned move to langchain-neo4j and langchain-chroma.
+
+# UI
+streamlit==1.63.0
+streamlit-agraph==0.0.45
+
+# LangChain core and integrations
+langchain==1.4.0
+langchain-core==1.6.3
+langchain-community==0.4.2
+langchain-experimental==0.4.2
+langchain-groq==1.1.3
+langchain-huggingface==1.2.2
+langchain-google-genai==4.4.0
+
+# Embeddings backend required by langchain-huggingface at runtime.
+# Not pulled in transitively - a fresh install fails without it.
+sentence-transformers==6.0.1
+
+# Stores
+neo4j==6.3.0
+chromadb==1.5.9
+
+# Data and config
+pandas==3.0.5
+datasets==5.0.1
+python-dotenv==1.2.3

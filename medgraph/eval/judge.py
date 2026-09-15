@@ -100,6 +100,7 @@ def judge(question, answer, ground_truth, retries=3):
     key = _cache_key(question, answer, ground_truth)
     cached = _read_cache(key)
     if cached is not None:
+        logger.info("judge cache hit %s", key[:8])
         return cached
 
     logger.info("judge cache miss %s - calling %s", key[:8], llm_config.JUDGE_MODEL)

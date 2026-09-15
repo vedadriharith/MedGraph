@@ -1,6 +1,10 @@
 # Security: Never upload keys
 .env
 
+# Virtual environments
+.venv/
+venv/
+
 # Database: Users should generate their own
 medical_chroma_db/
 *.chroma/
@@ -15,7 +19,8 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
-# Local Results
-*.csv
+# Old result files from the retired eval script
+research_results*.csv
 
+# Judge cache is machine-local, not evidence
 results/judge_cache/
